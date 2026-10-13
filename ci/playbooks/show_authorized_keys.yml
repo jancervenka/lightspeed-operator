@@ -1,0 +1,16 @@
+---
+# Verification aid: print ~/.ssh/authorized_keys on every host so the job log
+# confirms the pre-run (create_lightspeed_secret.yml) left only the automation
+# keys. Public keys only, so safe to log.
+- name: Show authorized_keys for the login user
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Read authorized_keys
+      ansible.builtin.slurp:
+        src: ~/.ssh/authorized_keys
+      register: _lightspeed_authorized_keys
+
+    - name: Print authorized_keys
+      ansible.builtin.debug:
+        msg: "{{ (_lightspeed_authorized_keys.content | b64decode).splitlines() }}"

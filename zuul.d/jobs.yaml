@@ -17,6 +17,8 @@
     pre-run: ci/playbooks/create_lightspeed_secret.yml
     # cleanup: true so Zuul still attempts the delete when the job is canceled.
     post-run:
+      # Verifies the pre-run left only the automation keys in authorized_keys.
+      - ci/playbooks/show_authorized_keys.yml
       - name: ci/playbooks/cleanup_lightspeed_secret.yml
         cleanup: true
     vars:
