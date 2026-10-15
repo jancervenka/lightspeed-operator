@@ -150,6 +150,27 @@ jobs:
           echo "operator_digest=$OPERATOR_IMAGE_DIGEST" >> "$GITHUB_OUTPUT"
           echo "bundle_digest=$BUNDLE_IMAGE_DIGEST" >> "$GITHUB_OUTPUT"
 
+      - name: Install operator-sdk
+        uses: redhat-actions/openshift-tools-installer@37eb3cfb20ac2df6f0511ffa71cd917e4d49cabf # v3
+        with:
+          source: github
+          operator-sdk: 1.42.3
+
+      - name: Validate community bundle
+        working-directory: community-operators-prod
+        run: operator-sdk bundle validate "./operators/openstack-lightspeed-operator/$NEW_VERSION"
+
+      # Scorecard executes its tests in Kubernetes pods.
+      - name: Create cluster for scorecard
+        uses: helm/kind-action@1544676c07bb3570fcb70166beaa07c4528fd4aa # v1.15.1
+        with:
+          cluster_name: community-scorecard
+          wait: 120s
+
+      - name: Run community bundle scorecard
+        working-directory: community-operators-prod
+        run: operator-sdk scorecard "./operators/openstack-lightspeed-operator/$NEW_VERSION" --wait-time 5m
+
       - name: Create or update upstream pull request
         id: pr
         working-directory: community-operators-prod
